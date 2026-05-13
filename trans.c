@@ -1,4 +1,6 @@
+// ================================
 // BANK MANAGEMENT SYSTEM
+// ================================
 // Features:
 // 1. Store accounts in text file
 // 2. Update account
@@ -7,7 +9,8 @@
 // 5. Search account
 // 6. Deposit money
 // 7. Withdraw money
-// 8. Exit
+// 8. Display all accounts   <-- NEW FEATURE
+// 9. Exit
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,16 +26,20 @@ struct clientData
 
 // function prototypes
 unsigned int enterChoice(void);
+
 void textFile(FILE *readPtr);
 void updateRecord(FILE *fPtr);
 void newRecord(FILE *fPtr);
 void deleteRecord(FILE *fPtr);
+
 void searchRecord(FILE *fPtr);
 void depositMoney(FILE *fPtr);
 void withdrawMoney(FILE *fPtr);
 
+void displayAllAccounts(FILE *fPtr); // NEW FEATURE
+
 // main function
-int main(int argc, char *argv[])
+int main()
 {
     FILE *cfPtr;
     unsigned int choice;
@@ -45,7 +52,7 @@ int main(int argc, char *argv[])
     }
 
     // menu loop
-    while ((choice = enterChoice()) != 8)
+    while ((choice = enterChoice()) != 9)
     {
         switch (choice)
         {
@@ -77,8 +84,12 @@ int main(int argc, char *argv[])
             withdrawMoney(cfPtr);
             break;
 
+        case 8:
+            displayAllAccounts(cfPtr); // NEW FEATURE
+            break;
+
         default:
-            printf("Incorrect choice.\n");
+            printf("Invalid choice.\n");
             break;
         }
     }
@@ -88,7 +99,9 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-// create formatted text file
+// ================================
+// STORE TEXT FILE
+// ================================
 void textFile(FILE *readPtr)
 {
     FILE *writePtr;
@@ -121,7 +134,7 @@ void textFile(FILE *readPtr)
             if (result != 0 && client.acctNum != 0)
             {
                 fprintf(writePtr,
-                        "%-6d%-16s%-11s%10.2f\n",
+                        "%-6u%-16s%-11s%10.2f\n",
                         client.acctNum,
                         client.lastName,
                         client.firstName,
@@ -135,7 +148,9 @@ void textFile(FILE *readPtr)
     }
 }
 
-// update account balance
+// ================================
+// UPDATE ACCOUNT
+// ================================
 void updateRecord(FILE *fPtr)
 {
     unsigned int account;
@@ -143,7 +158,7 @@ void updateRecord(FILE *fPtr)
 
     struct clientData client = {0, "", "", 0.0};
 
-    printf("Enter account number to update (1 - 100): ");
+    printf("Enter account number to update: ");
     scanf("%u", &account);
 
     fseek(fPtr,
@@ -161,15 +176,10 @@ void updateRecord(FILE *fPtr)
     }
     else
     {
-        printf("\nCurrent Details\n");
-
-        printf("%-6d%-16s%-11s%10.2f\n",
-               client.acctNum,
-               client.lastName,
-               client.firstName,
+        printf("\nCurrent Balance: %.2f\n",
                client.balance);
 
-        printf("\nEnter amount (+ deposit / - withdraw): ");
+        printf("Enter amount (+ deposit / - withdraw): ");
         scanf("%lf", &transaction);
 
         client.balance += transaction;
@@ -187,14 +197,16 @@ void updateRecord(FILE *fPtr)
     }
 }
 
-// add new account
+// ================================
+// ADD NEW ACCOUNT
+// ================================
 void newRecord(FILE *fPtr)
 {
     struct clientData client = {0, "", "", 0.0};
 
     unsigned int accountNum;
 
-    printf("Enter new account number (1 - 100): ");
+    printf("Enter new account number: ");
     scanf("%u", &accountNum);
 
     fseek(fPtr,
@@ -235,7 +247,9 @@ void newRecord(FILE *fPtr)
     }
 }
 
-// delete account
+// ================================
+// DELETE ACCOUNT
+// ================================
 void deleteRecord(FILE *fPtr)
 {
     struct clientData client;
@@ -243,7 +257,7 @@ void deleteRecord(FILE *fPtr)
 
     unsigned int accountNum;
 
-    printf("Enter account number to delete (1 - 100): ");
+    printf("Enter account number to delete: ");
     scanf("%u", &accountNum);
 
     fseek(fPtr,
@@ -274,14 +288,16 @@ void deleteRecord(FILE *fPtr)
     }
 }
 
-// search account
+// ================================
+// SEARCH ACCOUNT
+// ================================
 void searchRecord(FILE *fPtr)
 {
     unsigned int accountNum;
 
     struct clientData client = {0, "", "", 0.0};
 
-    printf("Enter account number to search (1 - 100): ");
+    printf("Enter account number to search: ");
     scanf("%u", &accountNum);
 
     fseek(fPtr,
@@ -315,7 +331,9 @@ void searchRecord(FILE *fPtr)
     }
 }
 
-// deposit money
+// ================================
+// DEPOSIT MONEY
+// ================================
 void depositMoney(FILE *fPtr)
 {
     unsigned int accountNum;
@@ -356,12 +374,15 @@ void depositMoney(FILE *fPtr)
                fPtr);
 
         printf("Money deposited successfully.\n");
+
         printf("Current Balance: %.2f\n",
                client.balance);
     }
 }
 
-// withdraw money
+// ================================
+// WITHDRAW MONEY
+// ================================
 void withdrawMoney(FILE *fPtr)
 {
     unsigned int accountNum;
@@ -408,13 +429,51 @@ void withdrawMoney(FILE *fPtr)
                    fPtr);
 
             printf("Money withdrawn successfully.\n");
+
             printf("Remaining Balance: %.2f\n",
                    client.balance);
         }
     }
 }
 
-// menu function
+// ================================
+// NEW FEATURE
+// DISPLAY ALL ACCOUNTS
+// ================================
+void displayAllAccounts(FILE *fPtr)
+{
+    struct clientData client = {0, "", "", 0.0};
+
+    rewind(fPtr);
+
+    printf("\n==============================================\n");
+    printf("%-10s%-15s%-15s%-10s\n",
+           "Account",
+           "Last Name",
+           "First Name",
+           "Balance");
+
+    printf("==============================================\n");
+
+    while (fread(&client,
+                 sizeof(struct clientData),
+                 1,
+                 fPtr))
+    {
+        if (client.acctNum != 0)
+        {
+            printf("%-10u%-15s%-15s%-10.2f\n",
+                   client.acctNum,
+                   client.lastName,
+                   client.firstName,
+                   client.balance);
+        }
+    }
+}
+
+// ================================
+// MENU FUNCTION
+// ================================
 unsigned int enterChoice(void)
 {
     unsigned int menuChoice;
@@ -428,7 +487,8 @@ unsigned int enterChoice(void)
     printf("5 - Search account\n");
     printf("6 - Deposit money\n");
     printf("7 - Withdraw money\n");
-    printf("8 - Exit\n");
+    printf("8 - Display all accounts\n");
+    printf("9 - Exit\n");
 
     printf("Enter your choice: ");
 
