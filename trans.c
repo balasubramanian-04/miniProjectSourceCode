@@ -1,7 +1,7 @@
-// ================================
+// ============================================
 // BANK MANAGEMENT SYSTEM
-// ================================
-// Features:
+// ============================================
+// FEATURES
 // 1. Store accounts in text file
 // 2. Update account
 // 3. Add new account
@@ -9,8 +9,10 @@
 // 5. Search account
 // 6. Deposit money
 // 7. Withdraw money
-// 8. Display all accounts   <-- NEW FEATURE
-// 9. Exit
+// 8. Display all accounts
+// 9. Transfer money   <-- NEW FEATURE
+// 10. Exit
+// ============================================
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,9 +38,13 @@ void searchRecord(FILE *fPtr);
 void depositMoney(FILE *fPtr);
 void withdrawMoney(FILE *fPtr);
 
-void displayAllAccounts(FILE *fPtr); // NEW FEATURE
+void displayAllAccounts(FILE *fPtr);
 
-// main function
+void transferMoney(FILE *fPtr); // NEW FEATURE
+
+// ============================================
+// MAIN FUNCTION
+// ============================================
 int main()
 {
     FILE *cfPtr;
@@ -52,7 +58,7 @@ int main()
     }
 
     // menu loop
-    while ((choice = enterChoice()) != 9)
+    while ((choice = enterChoice()) != 10)
     {
         switch (choice)
         {
@@ -85,7 +91,11 @@ int main()
             break;
 
         case 8:
-            displayAllAccounts(cfPtr); // NEW FEATURE
+            displayAllAccounts(cfPtr);
+            break;
+
+        case 9:
+            transferMoney(cfPtr); // NEW FEATURE
             break;
 
         default:
@@ -99,9 +109,9 @@ int main()
     return 0;
 }
 
-// ================================
+// ============================================
 // STORE TEXT FILE
-// ================================
+// ============================================
 void textFile(FILE *readPtr)
 {
     FILE *writePtr;
@@ -148,9 +158,9 @@ void textFile(FILE *readPtr)
     }
 }
 
-// ================================
+// ============================================
 // UPDATE ACCOUNT
-// ================================
+// ============================================
 void updateRecord(FILE *fPtr)
 {
     unsigned int account;
@@ -176,7 +186,7 @@ void updateRecord(FILE *fPtr)
     }
     else
     {
-        printf("\nCurrent Balance: %.2f\n",
+        printf("Current Balance: %.2f\n",
                client.balance);
 
         printf("Enter amount (+ deposit / - withdraw): ");
@@ -197,9 +207,9 @@ void updateRecord(FILE *fPtr)
     }
 }
 
-// ================================
+// ============================================
 // ADD NEW ACCOUNT
-// ================================
+// ============================================
 void newRecord(FILE *fPtr)
 {
     struct clientData client = {0, "", "", 0.0};
@@ -247,9 +257,9 @@ void newRecord(FILE *fPtr)
     }
 }
 
-// ================================
+// ============================================
 // DELETE ACCOUNT
-// ================================
+// ============================================
 void deleteRecord(FILE *fPtr)
 {
     struct clientData client;
@@ -288,9 +298,9 @@ void deleteRecord(FILE *fPtr)
     }
 }
 
-// ================================
+// ============================================
 // SEARCH ACCOUNT
-// ================================
+// ============================================
 void searchRecord(FILE *fPtr)
 {
     unsigned int accountNum;
@@ -331,9 +341,9 @@ void searchRecord(FILE *fPtr)
     }
 }
 
-// ================================
+// ============================================
 // DEPOSIT MONEY
-// ================================
+// ============================================
 void depositMoney(FILE *fPtr)
 {
     unsigned int accountNum;
@@ -374,15 +384,14 @@ void depositMoney(FILE *fPtr)
                fPtr);
 
         printf("Money deposited successfully.\n");
-
         printf("Current Balance: %.2f\n",
                client.balance);
     }
 }
 
-// ================================
+// ============================================
 // WITHDRAW MONEY
-// ================================
+// ============================================
 void withdrawMoney(FILE *fPtr)
 {
     unsigned int accountNum;
@@ -429,31 +438,30 @@ void withdrawMoney(FILE *fPtr)
                    fPtr);
 
             printf("Money withdrawn successfully.\n");
-
             printf("Remaining Balance: %.2f\n",
                    client.balance);
         }
     }
 }
 
-// ================================
-// NEW FEATURE
+// ============================================
 // DISPLAY ALL ACCOUNTS
-// ================================
+// ============================================
 void displayAllAccounts(FILE *fPtr)
 {
     struct clientData client = {0, "", "", 0.0};
 
     rewind(fPtr);
 
-    printf("\n==============================================\n");
+    printf("\n=================================================\n");
+
     printf("%-10s%-15s%-15s%-10s\n",
            "Account",
            "Last Name",
            "First Name",
            "Balance");
 
-    printf("==============================================\n");
+    printf("=================================================\n");
 
     while (fread(&client,
                  sizeof(struct clientData),
@@ -471,28 +479,113 @@ void displayAllAccounts(FILE *fPtr)
     }
 }
 
-// ================================
+// ============================================
+// NEW FEATURE
+// TRANSFER MONEY
+// ============================================
+void transferMoney(FILE *fPtr)
+{
+    unsigned int senderAcc;
+    unsigned int receiverAcc;
+
+    double amount;
+
+    struct clientData sender = {0, "", "", 0.0};
+    struct clientData receiver = {0, "", "", 0.0};
+
+    printf("Enter sender account number: ");
+    scanf("%u", &senderAcc);
+
+    printf("Enter receiver account number: ");
+    scanf("%u", &receiverAcc);
+
+    printf("Enter transfer amount: ");
+    scanf("%lf", &amount);
+
+    // read sender account
+    fseek(fPtr,
+          (senderAcc - 1) * sizeof(struct clientData),
+          SEEK_SET);
+
+    fread(&sender,
+          sizeof(struct clientData),
+          1,
+          fPtr);
+
+    // read receiver account
+    fseek(fPtr,
+          (receiverAcc - 1) * sizeof(struct clientData),
+          SEEK_SET);
+
+    fread(&receiver,
+          sizeof(struct clientData),
+          1,
+          fPtr);
+
+    // validation
+    if (sender.acctNum == 0)
+    {
+        printf("Sender account not found.\n");
+    }
+    else if (receiver.acctNum == 0)
+    {
+        printf("Receiver account not found.\n");
+    }
+    else if (amount > sender.balance)
+    {
+        printf("Insufficient balance in sender account.\n");
+    }
+    else
+    {
+        // deduct from sender
+        sender.balance -= amount;
+
+        fseek(fPtr,
+              (senderAcc - 1) * sizeof(struct clientData),
+              SEEK_SET);
+
+        fwrite(&sender,
+               sizeof(struct clientData),
+               1,
+               fPtr);
+
+        // add to receiver
+        receiver.balance += amount;
+
+        fseek(fPtr,
+              (receiverAcc - 1) * sizeof(struct clientData),
+              SEEK_SET);
+
+        fwrite(&receiver,
+               sizeof(struct clientData),
+               1,
+               fPtr);
+
+        printf("Money transferred successfully.\n");
+
+        printf("Sender New Balance   : %.2f\n",
+               sender.balance);
+
+        printf("Receiver New Balance : %.2f\n",
+               receiver.balance);
+    }
+}
+
+// ============================================
 // MENU FUNCTION
-// ================================
+// ============================================
 unsigned int enterChoice(void)
 {
     unsigned int menuChoice;
 
     printf("\n========== BANK MENU ==========\n");
 
-    printf("1 - Store accounts in text file\n");
-    printf("2 - Update an account\n");
-    printf("3 - Add new account\n");
-    printf("4 - Delete an account\n");
-    printf("5 - Search account\n");
-    printf("6 - Deposit money\n");
-    printf("7 - Withdraw money\n");
-    printf("8 - Display all accounts\n");
-    printf("9 - Exit\n");
-
-    printf("Enter your choice: ");
-
-    scanf("%u", &menuChoice);
-
-    return menuChoice;
-}
+    printf("1  - Store accounts in text file\n");
+    printf("2  - Update an account\n");
+    printf("3  - Add new account\n");
+    printf("4  - Delete an account\n");
+    printf("5  - Search account\n");
+    printf("6  - Deposit money\n");
+    printf("7  - Withdraw money\n");
+    printf("8  - Display all accounts\n");
+    printf("9  - Transfer
