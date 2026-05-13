@@ -13,8 +13,9 @@
 // 9. Transfer money
 // 10. Check total bank balance
 // 11. Show richest account
-// 12. Count total accounts   <-- NEW FEATURE
-// 13. Exit
+// 12. Count total accounts
+// 13. Show lowest balance account   <-- NEW FEATURE
+// 14. Exit
 // ======================================================
 
 #include <stdio.h>
@@ -47,7 +48,9 @@ void transferMoney(FILE *fPtr);
 void totalBankBalance(FILE *fPtr);
 void richestAccount(FILE *fPtr);
 
-void countAccounts(FILE *fPtr); // NEW FEATURE
+void countAccounts(FILE *fPtr);
+
+void lowestBalanceAccount(FILE *fPtr); // NEW FEATURE
 
 // ======================================================
 // MAIN FUNCTION
@@ -64,8 +67,7 @@ int main()
         exit(-1);
     }
 
-    // menu loop
-    while ((choice = enterChoice()) != 13)
+    while ((choice = enterChoice()) != 14)
     {
         switch (choice)
         {
@@ -114,7 +116,11 @@ int main()
             break;
 
         case 12:
-            countAccounts(cfPtr); // NEW FEATURE
+            countAccounts(cfPtr);
+            break;
+
+        case 13:
+            lowestBalanceAccount(cfPtr); // NEW FEATURE
             break;
 
         default:
@@ -346,17 +352,10 @@ void searchRecord(FILE *fPtr)
     {
         printf("\n===== ACCOUNT DETAILS =====\n");
 
-        printf("Account Number : %u\n",
-               client.acctNum);
-
-        printf("Last Name      : %s\n",
-               client.lastName);
-
-        printf("First Name     : %s\n",
-               client.firstName);
-
-        printf("Balance        : %.2f\n",
-               client.balance);
+        printf("Account Number : %u\n", client.acctNum);
+        printf("Last Name      : %s\n", client.lastName);
+        printf("First Name     : %s\n", client.firstName);
+        printf("Balance        : %.2f\n", client.balance);
     }
 }
 
@@ -631,22 +630,14 @@ void richestAccount(FILE *fPtr)
     {
         printf("\n===== RICHEST ACCOUNT =====\n");
 
-        printf("Account Number : %u\n",
-               richest.acctNum);
-
-        printf("Last Name      : %s\n",
-               richest.lastName);
-
-        printf("First Name     : %s\n",
-               richest.firstName);
-
-        printf("Balance        : %.2f\n",
-               richest.balance);
+        printf("Account Number : %u\n", richest.acctNum);
+        printf("Last Name      : %s\n", richest.lastName);
+        printf("First Name     : %s\n", richest.firstName);
+        printf("Balance        : %.2f\n", richest.balance);
     }
 }
 
 // ======================================================
-// NEW FEATURE
 // COUNT TOTAL ACCOUNTS
 // ======================================================
 void countAccounts(FILE *fPtr)
@@ -668,9 +659,47 @@ void countAccounts(FILE *fPtr)
         }
     }
 
-    printf("\n=================================\n");
-    printf("TOTAL ACTIVE ACCOUNTS : %d\n", count);
-    printf("=================================\n");
+    printf("\nTOTAL ACTIVE ACCOUNTS : %d\n", count);
+}
+
+// ======================================================
+// NEW FEATURE
+// SHOW LOWEST BALANCE ACCOUNT
+// ======================================================
+void lowestBalanceAccount(FILE *fPtr)
+{
+    struct clientData client = {0, "", "", 0.0};
+    struct clientData lowest = {0, "", "", 9999999.0};
+
+    rewind(fPtr);
+
+    while (fread(&client,
+                 sizeof(struct clientData),
+                 1,
+                 fPtr))
+    {
+        if (client.acctNum != 0)
+        {
+            if (client.balance < lowest.balance)
+            {
+                lowest = client;
+            }
+        }
+    }
+
+    if (lowest.acctNum == 0)
+    {
+        printf("No accounts available.\n");
+    }
+    else
+    {
+        printf("\n===== LOWEST BALANCE ACCOUNT =====\n");
+
+        printf("Account Number : %u\n", lowest.acctNum);
+        printf("Last Name      : %s\n", lowest.lastName);
+        printf("First Name     : %s\n", lowest.firstName);
+        printf("Balance        : %.2f\n", lowest.balance);
+    }
 }
 
 // ======================================================
@@ -694,7 +723,8 @@ unsigned int enterChoice(void)
     printf("10 - Check total bank balance\n");
     printf("11 - Show richest account\n");
     printf("12 - Count total accounts\n");
-    printf("13 - Exit\n");
+    printf("13 - Show lowest balance account\n");
+    printf("14 - Exit\n");
 
     printf("Enter your choice: ");
 
