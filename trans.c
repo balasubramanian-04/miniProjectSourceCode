@@ -11,8 +11,9 @@
 // 7. Withdraw money
 // 8. Display all accounts
 // 9. Transfer money
-// 10. Check total bank balance   <-- NEW FEATURE
-// 11. Exit
+// 10. Check total bank balance
+// 11. Show richest account   <-- NEW FEATURE
+// 12. Exit
 // ======================================================
 
 #include <stdio.h>
@@ -42,7 +43,9 @@ void withdrawMoney(FILE *fPtr);
 void displayAllAccounts(FILE *fPtr);
 void transferMoney(FILE *fPtr);
 
-void totalBankBalance(FILE *fPtr); // NEW FEATURE
+void totalBankBalance(FILE *fPtr);
+
+void richestAccount(FILE *fPtr); // NEW FEATURE
 
 // ======================================================
 // MAIN FUNCTION
@@ -60,7 +63,7 @@ int main()
     }
 
     // menu loop
-    while ((choice = enterChoice()) != 11)
+    while ((choice = enterChoice()) != 12)
     {
         switch (choice)
         {
@@ -101,7 +104,11 @@ int main()
             break;
 
         case 10:
-            totalBankBalance(cfPtr); // NEW FEATURE
+            totalBankBalance(cfPtr);
+            break;
+
+        case 11:
+            richestAccount(cfPtr); // NEW FEATURE
             break;
 
         default:
@@ -507,7 +514,6 @@ void transferMoney(FILE *fPtr)
     printf("Enter transfer amount: ");
     scanf("%lf", &amount);
 
-    // read sender account
     fseek(fPtr,
           (senderAcc - 1) * sizeof(struct clientData),
           SEEK_SET);
@@ -517,7 +523,6 @@ void transferMoney(FILE *fPtr)
           1,
           fPtr);
 
-    // read receiver account
     fseek(fPtr,
           (receiverAcc - 1) * sizeof(struct clientData),
           SEEK_SET);
@@ -541,7 +546,6 @@ void transferMoney(FILE *fPtr)
     }
     else
     {
-        // deduct sender amount
         sender.balance -= amount;
 
         fseek(fPtr,
@@ -553,7 +557,6 @@ void transferMoney(FILE *fPtr)
                1,
                fPtr);
 
-        // add receiver amount
         receiver.balance += amount;
 
         fseek(fPtr,
@@ -570,7 +573,6 @@ void transferMoney(FILE *fPtr)
 }
 
 // ======================================================
-// NEW FEATURE
 // TOTAL BANK BALANCE
 // ======================================================
 void totalBankBalance(FILE *fPtr)
@@ -592,9 +594,54 @@ void totalBankBalance(FILE *fPtr)
         }
     }
 
-    printf("\n================================\n");
-    printf("TOTAL BANK BALANCE : %.2f\n", total);
-    printf("================================\n");
+    printf("\nTOTAL BANK BALANCE : %.2f\n", total);
+}
+
+// ======================================================
+// NEW FEATURE
+// SHOW RICHEST ACCOUNT
+// ======================================================
+void richestAccount(FILE *fPtr)
+{
+    struct clientData client = {0, "", "", 0.0};
+    struct clientData richest = {0, "", "", 0.0};
+
+    rewind(fPtr);
+
+    while (fread(&client,
+                 sizeof(struct clientData),
+                 1,
+                 fPtr))
+    {
+        if (client.acctNum != 0)
+        {
+            if (client.balance > richest.balance)
+            {
+                richest = client;
+            }
+        }
+    }
+
+    if (richest.acctNum == 0)
+    {
+        printf("No accounts available.\n");
+    }
+    else
+    {
+        printf("\n===== RICHEST ACCOUNT =====\n");
+
+        printf("Account Number : %u\n",
+               richest.acctNum);
+
+        printf("Last Name      : %s\n",
+               richest.lastName);
+
+        printf("First Name     : %s\n",
+               richest.firstName);
+
+        printf("Balance        : %.2f\n",
+               richest.balance);
+    }
 }
 
 // ======================================================
@@ -616,7 +663,8 @@ unsigned int enterChoice(void)
     printf("8  - Display all accounts\n");
     printf("9  - Transfer money\n");
     printf("10 - Check total bank balance\n");
-    printf("11 - Exit\n");
+    printf("11 - Show richest account\n");
+    printf("12 - Exit\n");
 
     printf("Enter your choice: ");
 
