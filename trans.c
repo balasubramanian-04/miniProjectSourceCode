@@ -12,8 +12,9 @@
 // 8. Display all accounts
 // 9. Transfer money
 // 10. Check total bank balance
-// 11. Show richest account   <-- NEW FEATURE
-// 12. Exit
+// 11. Show richest account
+// 12. Count total accounts   <-- NEW FEATURE
+// 13. Exit
 // ======================================================
 
 #include <stdio.h>
@@ -44,8 +45,9 @@ void displayAllAccounts(FILE *fPtr);
 void transferMoney(FILE *fPtr);
 
 void totalBankBalance(FILE *fPtr);
+void richestAccount(FILE *fPtr);
 
-void richestAccount(FILE *fPtr); // NEW FEATURE
+void countAccounts(FILE *fPtr); // NEW FEATURE
 
 // ======================================================
 // MAIN FUNCTION
@@ -63,7 +65,7 @@ int main()
     }
 
     // menu loop
-    while ((choice = enterChoice()) != 12)
+    while ((choice = enterChoice()) != 13)
     {
         switch (choice)
         {
@@ -108,7 +110,11 @@ int main()
             break;
 
         case 11:
-            richestAccount(cfPtr); // NEW FEATURE
+            richestAccount(cfPtr);
+            break;
+
+        case 12:
+            countAccounts(cfPtr); // NEW FEATURE
             break;
 
         default:
@@ -397,8 +403,6 @@ void depositMoney(FILE *fPtr)
                fPtr);
 
         printf("Money deposited successfully.\n");
-        printf("Current Balance: %.2f\n",
-               client.balance);
     }
 }
 
@@ -451,8 +455,6 @@ void withdrawMoney(FILE *fPtr)
                    fPtr);
 
             printf("Money withdrawn successfully.\n");
-            printf("Remaining Balance: %.2f\n",
-                   client.balance);
         }
     }
 }
@@ -598,7 +600,6 @@ void totalBankBalance(FILE *fPtr)
 }
 
 // ======================================================
-// NEW FEATURE
 // SHOW RICHEST ACCOUNT
 // ======================================================
 void richestAccount(FILE *fPtr)
@@ -645,6 +646,34 @@ void richestAccount(FILE *fPtr)
 }
 
 // ======================================================
+// NEW FEATURE
+// COUNT TOTAL ACCOUNTS
+// ======================================================
+void countAccounts(FILE *fPtr)
+{
+    struct clientData client = {0, "", "", 0.0};
+
+    int count = 0;
+
+    rewind(fPtr);
+
+    while (fread(&client,
+                 sizeof(struct clientData),
+                 1,
+                 fPtr))
+    {
+        if (client.acctNum != 0)
+        {
+            count++;
+        }
+    }
+
+    printf("\n=================================\n");
+    printf("TOTAL ACTIVE ACCOUNTS : %d\n", count);
+    printf("=================================\n");
+}
+
+// ======================================================
 // MENU FUNCTION
 // ======================================================
 unsigned int enterChoice(void)
@@ -664,7 +693,8 @@ unsigned int enterChoice(void)
     printf("9  - Transfer money\n");
     printf("10 - Check total bank balance\n");
     printf("11 - Show richest account\n");
-    printf("12 - Exit\n");
+    printf("12 - Count total accounts\n");
+    printf("13 - Exit\n");
 
     printf("Enter your choice: ");
 
